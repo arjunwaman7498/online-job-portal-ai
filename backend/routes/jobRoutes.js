@@ -8,7 +8,7 @@ const {
   createJob,
   updateJob,
   deleteJob,
-} = require("../controllers/jobController");
+} = require("../controllers/jobController.js");
 
 const { protect } = require("../middleware/authMiddleware");
 const { authorizeRoles } = require("../middleware/roleMiddleware");
