@@ -1,7 +1,5 @@
 const nodemailer = require("nodemailer");
 
-const nodemailer = require("nodemailer");
-
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -21,4 +19,13 @@ transporter.verify((error) => {
   }
 });
 
-module.exports = transporter;
+const sendEmail = async (to, subject, html) => {
+  return transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+  });
+};
+
+module.exports = sendEmail;
