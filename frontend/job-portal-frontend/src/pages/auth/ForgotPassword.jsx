@@ -17,6 +17,10 @@ const ForgotPassword = () => {
       const response = await API.post("/auth/forgot-password", {
         email,
       });
+      if (response.data.resetLink) {
+  window.location.href =
+    response.data.resetLink;
+}
 
       setMessage(
         response.data.message ||
