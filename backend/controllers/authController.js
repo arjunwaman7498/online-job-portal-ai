@@ -3,7 +3,7 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-const sendEmail = require("../utils/sendEmail.js");
+
 
 // =====================================================
 // REGISTER
@@ -129,95 +129,37 @@ const login = async (req, res) => {
 // FORGOT PASSWORD
 // =====================================================
 const forgotPassword = async (req, res) => {
-  console.log("Forgot Password route called");
-
   try {
     const { email } = req.body;
 
-    console.log("Email received:", email);
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    });
 
-  const allUsers = await User.find({}, "email role");
-
-console.log("All users:", allUsers);
-
-const user = await User.findOne({
-  email: email.trim().toLowerCase(),
-});
-
-console.log("Matched user:", user);
-
-    // Don't reveal whether the account exists
     if (!user) {
-      console.log("User not found");
-
-      return res.status(200).json({
-        success: true,
-        message:
-          "If an account exists with this email, a password reset link has been sent.",
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
-    console.log("User found:", user.email);
-
-    // Generate token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+    user.resetPasswordExpire =
+      Date.now() + 15 * 60 * 1000;
 
     await user.save();
 
-    console.log("Reset token saved");
-
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    console.log("Reset URL:", resetUrl);
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Hello ${user.name},</h2>
-
-        <p>We received a request to reset your password.</p>
-
-        <p>
-          <a
-            href="${resetUrl}"
-            style="
-              display:inline-block;
-              padding:12px 20px;
-              background:#2563eb;
-              color:white;
-              text-decoration:none;
-              border-radius:6px;
-            "
-          >
-            Reset Password
-          </a>
-        </p>
-
-        <p>This link will expire in 15 minutes.</p>
-
-        <p>If you didn't request this, you can ignore this email.</p>
-      </div>
-    `;
-
-    console.log("About to send email");
-
-    await sendEmail(
-      user.email,
-      "Reset Your Job Portal Password",
-      html
-    );
-
-    console.log("Email sent successfully");
+    const resetUrl =
+      `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     return res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email",
+      resetLink: resetUrl,
     });
   } catch (error) {
-    console.log("Forgot Password Error:", error);
-
     return res.status(500).json({
       success: false,
       message: error.message,
