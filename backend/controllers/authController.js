@@ -129,8 +129,16 @@ const login = async (req, res) => {
 // FORGOT PASSWORD
 // =====================================================
 const forgotPassword = async (req, res) => {
+  console.log("Forgot Password route called");
+
   try {
     const { email } = req.body;
+
+    console.log("Email:", email);
+
+    // existing code...
+
+    // Existing code...
 
     const user = await User.findOne({ email });
 
