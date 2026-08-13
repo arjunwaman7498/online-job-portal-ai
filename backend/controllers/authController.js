@@ -136,7 +136,15 @@ const forgotPassword = async (req, res) => {
 
     console.log("Email received:", email);
 
-    const user = await User.findOne({ email });
+  const allUsers = await User.find({}, "email role");
+
+console.log("All users:", allUsers);
+
+const user = await User.findOne({
+  email: email.trim().toLowerCase(),
+});
+
+console.log("Matched user:", user);
 
     // Don't reveal whether the account exists
     if (!user) {
