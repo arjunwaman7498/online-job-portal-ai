@@ -134,16 +134,14 @@ const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    console.log("Email:", email);
-
-    // existing code...
-
-    // Existing code...
+    console.log("Email received:", email);
 
     const user = await User.findOne({ email });
 
-    // Don't reveal whether an email exists
+    // Don't reveal whether the account exists
     if (!user) {
+      console.log("User not found");
+
       return res.status(200).json({
         success: true,
         message:
@@ -151,99 +149,68 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    // Generate secure random token
+    console.log("User found:", user.email);
+
+    // Generate token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // Save token
     user.resetPasswordToken = resetToken;
-
-    // Token expires after 15 minutes
-    user.resetPasswordExpire =
-      Date.now() + 15 * 60 * 1000;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
 
     await user.save();
 
-    // Frontend reset URL
+    console.log("Reset token saved");
+
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    try {
-      await sendEmail(
-        user.email,
-        "Reset Your Job Portal Password",
-        `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-            
-            <h2>Hello ${user.name},</h2>
+    console.log("Reset URL:", resetUrl);
 
-            <p>
-              We received a request to reset your Job Portal password.
-            </p>
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Hello ${user.name},</h2>
 
-            <p>
-              Click the button below to create a new password.
-            </p>
+        <p>We received a request to reset your password.</p>
 
-            <p>
-              <a
-                href="${resetUrl}"
-                style="
-                  display:inline-block;
-                  padding:12px 20px;
-                  background:#2563eb;
-                  color:white;
-                  text-decoration:none;
-                  border-radius:6px;
-                "
-              >
-                Reset Password
-              </a>
-            </p>
+        <p>
+          <a
+            href="${resetUrl}"
+            style="
+              display:inline-block;
+              padding:12px 20px;
+              background:#2563eb;
+              color:white;
+              text-decoration:none;
+              border-radius:6px;
+            "
+          >
+            Reset Password
+          </a>
+        </p>
 
-            <p>
-              This link will expire in <strong>15 minutes</strong>.
-            </p>
+        <p>This link will expire in 15 minutes.</p>
 
-            <p>
-              If you did not request a password reset,
-              you can safely ignore this email.
-            </p>
+        <p>If you didn't request this, you can ignore this email.</p>
+      </div>
+    `;
 
-            <br>
+    console.log("About to send email");
 
-            <p>
-              Regards,<br>
-              <strong>Job Portal Team</strong>
-            </p>
+    await sendEmail(
+      user.email,
+      "Reset Your Job Portal Password",
+      html
+    );
 
-          </div>
-        `
-      );
-    } catch (emailError) {
-      console.log(
-        "Forgot Password Email Error:",
-        emailError.message
-      );
+    console.log("Email sent successfully");
 
-      // Clear token if email failed
-      user.resetPasswordToken = null;
-      user.resetPasswordExpire = null;
-
-      await user.save();
-
-      return res.status(500).json({
-        success: false,
-        message: "Unable to send password reset email",
-      });
-    }
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Password reset link sent to your email",
     });
   } catch (error) {
     console.log("Forgot Password Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
