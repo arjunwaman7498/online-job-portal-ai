@@ -244,7 +244,6 @@ MongoDB Database
 ## 🔮 Future Enhancements
 
 - Resume ATS Score check
-- Advanced search filters
 - AI-based job recommendations
 - Interview scheduling
 - Real-time notifications
