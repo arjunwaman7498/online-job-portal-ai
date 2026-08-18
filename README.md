@@ -243,7 +243,7 @@ MongoDB Database
 
 ## 🔮 Future Enhancements
 
-- Resume upload
+- Resume ATS Score check
 - Advanced search filters
 - AI-based job recommendations
 - Interview scheduling
